@@ -1,5 +1,6 @@
 import cv2
 import os
+import pathlib
 import numpy as np
 
 
@@ -23,9 +24,13 @@ def save_letters(letters):
     :return: <list> of paths to saved letters <string>
     """
     saved_letters = list()
+
+    directory = 'processed'
+    pathlib.Path(directory).mkdir(exist_ok=True)
+
     for row_index, row in enumerate(letters):
         for letter_index, letter in enumerate(row):
-            path = os.path.join('processed', generate_title('l', row_index, letter_index))
+            path = os.path.join(directory, generate_title('l', row_index, letter_index))
             saved_letters.append(path)
             cv2.imwrite(path, letter)
     return saved_letters
@@ -33,14 +38,18 @@ def save_letters(letters):
 
 def reshape_letters(letters_paths):
     """
-    Reshape letters and saves them to reshaped/
+    Reshapes letters and saves them to src/reshaped/
     :param letters_paths: <list> of paths to letters <string>
     :return: None
     """
+
+    directory = 'reshaped'
+    pathlib.Path(directory).mkdir(exist_ok=True)
+
     for letter_path in letters_paths:
         letter = reshape(letter_path)
-        path = os.path.join('reshaped', letter_path.split('/')[-1])
-        print(path)
+        path = os.path.join(directory, letter_path.split(os.sep)[-1])
+        # print(path)
         cv2.imwrite(path, letter)
 
 
@@ -78,7 +87,7 @@ def remove_redundant_top(im):
 
 def reshape(letter_path):
     """
-    Reshape letter to 28x28 pixels.
+    Reshapes letter to 28x28 pixels.
     Before reshaping removes redundant top and bottom white rows.
     :param letter_path: <string>
     :return: reshaped letter

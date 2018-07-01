@@ -4,7 +4,7 @@ from preprocessing import save_letters, reshape_letters
 
 if __name__ == "__main__":
 
-    # czytanie zdjecia
+    # read input
     im = cv2.imread("./test_pictures/test1.bmp", 0)
 
     # NOTE: zwiększenie kontrastu powoduje że histogram jest wyrównany, ale w strone
@@ -12,15 +12,15 @@ if __name__ == "__main__":
     # zwiększenie kontrastu wyrównaniem histogramu
     # im = cv2.equalizeHist(im)
 
-    # liczenie oraz wyswietlanie histogramu
+    # histogram
     # hist = cv2.calcHist([im], [0], None, [256], [0, 256])
     # plt.bar(range(0, 256), [x[0] for x in hist])
     # plt.show()
 
-    # tresholding globalny metodą otsu (bo w histogramie są 2 widoczne piki)
+    # global tresholding with otsu (2 peaks seen in histogram)
     ret, im = cv2.threshold(im, 0, 255, cv2.THRESH_OTSU)
 
-    # erozja
+    # erosion
     im_negative = cv2.bitwise_not(im)
     kernel = np.ones((2, 1), np.uint8)
     im_negative = cv2.erode(im_negative, kernel, iterations=1)
@@ -48,10 +48,10 @@ if __name__ == "__main__":
     text_row = []
     mask = (np.sum(im, axis=1) / im.shape[1]) != 255
     for ind, row_flag in enumerate(mask):
-        if row_flag == True and mask[ind - 1] == False:
+        if row_flag and not mask[ind - 1]:
             text_row.append([])
             text_row[-1].append(im[ind])
-        elif row_flag == True and mask[ind - 1] == True:
+        elif row_flag and mask[ind - 1]:
             text_row[-1].append(im[ind])
 
     for ind, row in enumerate(text_row):
@@ -64,14 +64,14 @@ if __name__ == "__main__":
         letter_row = []
         mask = (np.sum(row, axis=0) / row.shape[0]) != 255
         for ind, col_flag in enumerate(mask):
-            if col_flag == True and mask[ind - 1] == False:
+            if col_flag and not mask[ind - 1]:
                 letter_row.append(np.array(row[:, ind])[:, np.newaxis])
-                print(len(letter_row))
-            if col_flag == True and mask[ind - 1] == True:
+                # print(len(letter_row))
+            if col_flag and mask[ind - 1]:
                 letter_row[-1] = np.insert(letter_row[-1], -1, np.array(row[:, ind]), axis=1)
 
         letters.append(letter_row)
 
-    # variable letters has all letters... this is 2 dim table of format letters[row][letter].
+    # variable letters has all letters... this is 2 dim table of format letters[row][letter]
     saved_letters = save_letters(letters)
     reshape_letters(saved_letters)
